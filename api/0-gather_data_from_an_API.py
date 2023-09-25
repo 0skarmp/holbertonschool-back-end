@@ -1,23 +1,41 @@
 #!/usr/bin/python3
-"""Python script that using REST API"""
+"""
+This module makes a request to an API to extract specific data
+"""
 import requests
-import sys
+from sys import argv
 
-if __name__ == "__main__":
-    user_id = sys.argv[1]
-    todo_url = f"https://jsonplaceholder.typicode.com/todos?userId={user_id}"
-    user_url = f"https://jsonplaceholder.typicode.com/users/{user_id}"
 
-    response1 = requests.get(todo_url).json()
-    response2 = requests.get(user_url).json()
+url = 'https://jsonplaceholder.typicode.com'
 
-    number_tasks_done = sum(1 for task in response1 if task["completed"])
-    total_tasks = len(response1)
+# Acceso a la API
+response = requests.get(url)
 
-    employee_name = response2.get("name")
-    task_titles = [task["title"] for task in response1 if task["completed"]]
+
+def make_request():
+    # Hacer las solicitudes para obtener los datos de la API
+    response_tasks = requests.get(f"{url}/todos?userId={argv[1]}")
+    response_user = requests.get(f"{url}/users/{argv[1]}")
+
+    # Convertir de JSON a estrucutura de datos
+    all_task = response_tasks.json()
+    username = response_user.json().get('name')
+
+    # Lista de tareas completadas por el usuario x
+    completed_tasks = []
+    for task in all_task:
+        if task.get('completed'):
+            completed_tasks.append(task)
 
     print("Employee {} is done with tasks({}/{}):".format(
-          employee_name, number_tasks_done, total_tasks))
-    for title in task_titles:
-        print(f"\t {title}")
+        username,
+        len(completed_tasks),
+        len(all_task))
+        )
+
+    for task in completed_tasks:
+        print(f"\t {task.get('title')}")
+
+
+if __name__ == '__main__':
+    make_request()
