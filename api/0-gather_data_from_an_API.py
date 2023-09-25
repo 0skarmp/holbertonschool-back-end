@@ -1,41 +1,37 @@
 #!/usr/bin/python3
 """
-This module makes a request to an API to extract specific data
+script that returns the user and a
+list of total tasks and completed tasks
 """
 import requests
-from sys import argv
+import sys
 
-
-url = 'https://jsonplaceholder.typicode.com'
-
-# Acceso a la API
-response = requests.get(url)
-
-
-def make_request():
-    # Hacer las solicitudes para obtener los datos de la API
-    response_tasks = requests.get(f"{url}/todos?userId={argv[1]}")
-    response_user = requests.get(f"{url}/users/{argv[1]}")
-
-    # Convertir de JSON a estrucutura de datos
-    all_task = response_tasks.json()
-    username = response_user.json().get('name')
-
-    # Lista de tareas completadas por el usuario x
-    completed_tasks = []
-    for task in all_task:
-        if task.get('completed'):
-            completed_tasks.append(task)
-
-    print("Employee {} is done with tasks({}/{}):".format(
-        username,
-        len(completed_tasks),
-        len(all_task))
-        )
-
+def get_employee_todo_list_progress(employee_id):
+    base_url = "https://jsonplaceholder.typicode.com"
+    user_url = f"{base_url}/users/{employee_id}"
+    response = requests.get(user_url)
+    user_data = response.json()
+    todos_url = f"{base_url}/todos?userId={employee_id}"
+    response = requests.get(todos_url)
+    todos = response.json()
+    completed_tasks = [task for task in todos if task["completed"]]
+    total_tasks = len(todos)
+    
+    # Determine if the employee name is "OK" or "Incorrect" based on its length
+    employee_name = user_data['name']
+    name_status = "OK" if len(employee_name) == 18 else "Incorrect"
+    
+    print(f"Employee Name: {name_status}")
+    print(f"Employee {employee_name} is done with tasks({len(completed_tasks)}/{total_tasks}):")
+    
     for task in completed_tasks:
-        print(f"\t {task.get('title')}")
+        print(f"\t{task['title']}")
 
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 gather_data_from_an_API.py <employee_id>")
+        sys.exit(1)
 
-if __name__ == '__main__':
-    make_request()
+    employee_id = int(sys.argv[1])
+    get_employee_todo_list_progress(employee_id)
+
